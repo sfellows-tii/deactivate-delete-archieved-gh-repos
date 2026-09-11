@@ -49,7 +49,7 @@ def generate_archived_repos_json(
     github_org_name: str = typer.Option(..., "--github-org-name", "-g", help="The name of the GitHub organization to search for archived repos"),
     snyk_org_id: str = typer.Option(..., "--snyk-org-id", "-s", help="The ID of the Snyk organization to search for targets"),
     output_file: str = typer.Option("archived-projects.json", "--output-file", "-o", help="The file path to write the JSON data"),
-    snyk_tenant: str = typer.Option("api.us.snyk.io", "--snyk-tenant", "-st", help="The tenant of the Snyk organization"),
+    snyk_tenant: str = typer.Option("api.snyk.io", "--snyk-tenant", "-st", help="The tenant of the Snyk organization"),
     log_level: str = typer.Option("INFO", "--log-level", "-l", help="Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)")
 ):
     setup_logging(log_level)
@@ -80,7 +80,7 @@ def generate_archived_repos_json(
 @app.command()
 def deactivate_from_json(
     input_file: str = typer.Option(..., "--input-file", "-i", help="The file path to read the JSON data from"),
-    snyk_tenant: str = typer.Option("api.us.snyk.io", "--snyk-tenant", "-st", help="The tenant of the Snyk organization"),
+    snyk_tenant: str = typer.Option("api.snyk.io", "--snyk-tenant", "-st", help="The tenant of the Snyk organization"),
     log_level: str = typer.Option("INFO", "--log-level", "-l", help="Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)")
 ):
     setup_logging(log_level)
@@ -100,7 +100,7 @@ def deactivate_from_json(
 @app.command()
 def delete_from_json(
     input_file: str = typer.Option(..., "--input-file", "-i", help="The file path to read the JSON data from"),
-    snyk_tenant: str = typer.Option("api.us.snyk.io", "--snyk-tenant", "-st", help="The tenant of the Snyk organization"),
+    snyk_tenant: str = typer.Option("api.snyk.io", "--snyk-tenant", "-st", help="The tenant of the Snyk organization"),
     log_level: str = typer.Option("INFO", "--log-level", "-l", help="Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)")
 ):
     setup_logging(log_level)
