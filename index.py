@@ -4,11 +4,9 @@ import logging
 import sys
 
 from utils.githubApi import get_archived_repos_urls
-from utils.tokenReader import get_github_token
+from utils.tokenReader import get_github_token, get_ghe_token
 from utils.synkApi import get_snyk_targets, get_snyk_projects_by_target_id, deactivate_project, delete_project
 from utils.fileReader import write_json_to_file
-
-GITHUB_TOKEN = get_github_token()
 
 app = typer.Typer()
 
@@ -20,17 +18,22 @@ def setup_logging(level: str):
 
 def find_matching_targets(archived_repo_urls, snyk_targets):
     matching_targets = []
+    logging.debug(f"Comparing {len(archived_repo_urls)} archived repos against {len(snyk_targets)} Snyk targets")
+
     for target in snyk_targets:
         try:
             target_url = target.get("attributes", {}).get("url")
+            logging.debug(f"Checking Snyk target URL: {target_url}")
             if target_url in archived_repo_urls:
+                logging.info(f"Match found: {target_url}")
                 matching_targets.append({
                     "snyk_target_id": target.get("id"),
                     "url": target_url
                 })
         except Exception as e:
             logging.error(f"Error getting target URL for {target}: {e}")
-        
+
+    logging.info(f"Found {len(matching_targets)} matching targets")
     return matching_targets
 
 def get_all_projects(matching_targets, snyk_tenant, snyk_org_id):
@@ -50,12 +53,29 @@ def generate_archived_repos_json(
     snyk_org_id: str = typer.Option(..., "--snyk-org-id", "-s", help="The ID of the Snyk organization to search for targets"),
     output_file: str = typer.Option("archived-projects.json", "--output-file", "-o", help="The file path to write the JSON data"),
     snyk_tenant: str = typer.Option("api.snyk.io", "--snyk-tenant", "-st", help="The tenant of the Snyk organization"),
+    provider: str = typer.Option("github", "--provider", "-p", help="The Git provider (github or ghe)"),
+    github_base_url: str = typer.Option(None, "--github-base-url", "-gb", help="The base URL for GitHub API including /api/v3 (required for GHE, e.g., https://ghe.iparadigms.com/api/v3)"),
     log_level: str = typer.Option("INFO", "--log-level", "-l", help="Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)")
 ):
     setup_logging(log_level)
     logging.info("Starting to generate archived repos JSON")
 
-    archived_repo_urls = get_archived_repos_urls(github_org_name, GITHUB_TOKEN)
+    # Determine the base URL and token based on provider
+    is_ghe = provider.lower() == "ghe"
+    if is_ghe:
+        if not github_base_url:
+            logging.error("--github-base-url is required when using 'ghe' provider")
+            raise typer.BadParameter("--github-base-url is required when using 'ghe' provider")
+        base_url = github_base_url
+        github_token = get_ghe_token()
+    else:
+        base_url = "https://api.github.com"
+        github_token = get_github_token()
+
+    logging.info(f"Using GitHub API base URL: {base_url}")
+    archived_repo_urls = get_archived_repos_urls(github_org_name, github_token, base_url, is_ghe)
+    logging.info(f"Found {len(archived_repo_urls)} archived repos")
+
     snyk_targets = get_snyk_targets(snyk_tenant, snyk_org_id)
     all_projects = []
 

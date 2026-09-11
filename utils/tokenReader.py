@@ -32,6 +32,17 @@ def get_github_token():
     else:
         return GITHUB_TOKEN
 
+def get_ghe_token():
+    GHE_TOKEN = check_if_ghe_token_exist()
+
+    # GHE tokens can have different formats, so be more lenient
+    # Just check it's not empty and has reasonable length
+    if not GHE_TOKEN or len(GHE_TOKEN) < 20:
+        print("GHE token is not defined or not valid.")
+        sys.exit()
+    else:
+        return GHE_TOKEN.strip()
+
 def check_if_github_token_exist():
     print("Checking for GitHub token environment variable")
     try:
@@ -40,6 +51,16 @@ def check_if_github_token_exist():
             return os.getenv('GITHUB_TOKEN')
     except:
         print("GitHub token does not exist")
+        sys.exit()
+
+def check_if_ghe_token_exist():
+    print("Checking for GHE token environment variable")
+    try:
+        if os.environ.get('GHE_TOKEN'):
+            print("Found GHE token")
+            return os.getenv('GHE_TOKEN')
+    except:
+        print("GHE token does not exist")
         sys.exit()
 
 def check_if_gitlab_token_exist():
