@@ -55,7 +55,7 @@ python index.py generate-archived-repos-json --snyk-org-id <SNYK_ORG_ID> [OPTION
 #### GitHub Organization Options (choose one)
 
 - `--github-org-name` or `-g`: The name of a specific GitHub organization to search for archived repos.
-- `--all-orgs` or `-a`: Scan all GitHub organizations accessible by the token.
+- `--all-github-orgs` or `-a`: Scan all GitHub organizations accessible by the token.
 
 #### Provider Options
 
@@ -106,7 +106,7 @@ python index.py generate-archived-repos-json \
 
 ```bash
 python index.py generate-archived-repos-json \
-  --all-orgs \
+  --all-github-orgs \
   --snyk-org-id abc123-snyk-org-id
 ```
 
@@ -126,7 +126,7 @@ python index.py generate-archived-repos-json \
 
 ```bash
 python index.py generate-archived-repos-json \
-  --all-orgs \
+  --all-github-orgs \
   --snyk-org-id abc123-snyk-org-id \
   --provider ghe \
   --github-base-url https://ghe.company.com/api/v3
@@ -136,7 +136,7 @@ python index.py generate-archived-repos-json \
 
 ```bash
 python index.py generate-archived-repos-json \
-  --all-orgs \
+  --all-github-orgs \
   --snyk-org-id abc123-snyk-org-id \
   --provider ghe \
   --github-base-url https://ghe.company.com/api/v3 \
@@ -168,7 +168,7 @@ python index.py delete-from-json -i archived-projects.json
 
 ## Notes
 
-- When using `--all-orgs` with GitHub.com, only organizations that your token has access to will be scanned.
-- When using `--all-orgs` with GHE, all organizations on the GitHub Enterprise instance will be scanned.
+- When using `--all-github-orgs` with GitHub.com, only organizations that your token has access to will be scanned.
+- When using `--all-github-orgs` with GHE, all organizations on the GitHub Enterprise instance will be scanned.
 - The tool uses different endpoints for GitHub.com (`/user/orgs`) and GHE (`/organizations`) to fetch organization lists.
 - Always review the generated JSON file before running deactivate or delete commands.
