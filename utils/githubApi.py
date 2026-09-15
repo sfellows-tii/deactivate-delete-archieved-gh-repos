@@ -78,8 +78,8 @@ def get_archived_repos_urls(org_name, token, base_url="https://api.github.com", 
     URL = f"{base_url}/orgs/{org_name}/repos"
 
     logging.info(f"Fetching repos from: {URL}")
-    logging.info(f"Using GHE mode: {is_ghe}")
-    logging.info(f"Accept header: {headers['Accept']}")
+    logging.debug(f"Using GHE mode: {is_ghe}")
+    logging.debug(f"Accept header: {headers['Accept']}")
     logging.debug(f"Token (first 10 chars): {token[:10]}...")
 
     archived_repos = []
