@@ -60,7 +60,7 @@ python index.py generate-archived-repos-json --snyk-org-id <SNYK_ORG_ID> [OPTION
 #### Provider Options
 
 - `--provider` or `-p`: The Git provider. Options: `github` (default) or `ghe`.
-- `--github-base-url` or `-gb`: The base URL for GitHub API including `/api/v3` (required for GHE, e.g., `https://ghe.company.com/api/v3`).
+- `--github-base-url` or `-gb`: The base URL for GitHub API including `/api/v3` (optional for GHE, defaults to `https://ghe.iparadigms.com/api/v3`).
 
 #### Other Options
 
@@ -112,7 +112,16 @@ python index.py generate-archived-repos-json \
 
 ### GitHub Enterprise
 
-**Scan a single organization:**
+**Scan a single organization (using default GHE URL https://ghe.iparadigms.com/api/v3):**
+
+```bash
+python index.py generate-archived-repos-json \
+  --github-org-name my-ghe-org \
+  --snyk-org-id abc123-snyk-org-id \
+  --provider ghe
+```
+
+**Scan a single organization (with custom GHE URL):**
 
 ```bash
 python index.py generate-archived-repos-json \
@@ -122,7 +131,16 @@ python index.py generate-archived-repos-json \
   --github-base-url https://ghe.company.com/api/v3
 ```
 
-**Scan all organizations on GHE instance:**
+**Scan all organizations on default GHE instance:**
+
+```bash
+python index.py generate-archived-repos-json \
+  --all-github-orgs \
+  --snyk-org-id abc123-snyk-org-id \
+  --provider ghe
+```
+
+**Scan all organizations on custom GHE instance:**
 
 ```bash
 python index.py generate-archived-repos-json \
@@ -139,7 +157,6 @@ python index.py generate-archived-repos-json \
   --all-github-orgs \
   --snyk-org-id abc123-snyk-org-id \
   --provider ghe \
-  --github-base-url https://ghe.company.com/api/v3 \
   --log-level DEBUG
 ```
 
@@ -171,4 +188,5 @@ python index.py delete-from-json -i archived-projects.json
 - When using `--all-github-orgs` with GitHub.com, only organizations that your token has access to will be scanned.
 - When using `--all-github-orgs` with GHE, all organizations on the GitHub Enterprise instance will be scanned.
 - The tool uses different endpoints for GitHub.com (`/user/orgs`) and GHE (`/organizations`) to fetch organization lists.
+- For GHE, if `--github-base-url` is not specified, it defaults to `https://ghe.iparadigms.com/api/v3`.
 - Always review the generated JSON file before running deactivate or delete commands.

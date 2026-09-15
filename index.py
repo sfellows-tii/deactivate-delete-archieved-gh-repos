@@ -55,7 +55,7 @@ def generate_archived_repos_json(
     output_file: str = typer.Option("archived-projects.json", "--output-file", "-o", help="The file path to write the JSON data"),
     snyk_tenant: str = typer.Option("api.snyk.io", "--snyk-tenant", "-st", help="The tenant of the Snyk organization"),
     provider: str = typer.Option("github", "--provider", "-p", help="The Git provider (github or ghe)"),
-    github_base_url: str = typer.Option(None, "--github-base-url", "-gb", help="The base URL for GitHub API including /api/v3 (required for GHE, e.g., https://ghe.iparadigms.com/api/v3)"),
+    github_base_url: str = typer.Option(None, "--github-base-url", "-gb", help="The base URL for GitHub API including /api/v3 (defaults to https://ghe.iparadigms.com/api/v3 for GHE)"),
     log_level: str = typer.Option("INFO", "--log-level", "-l", help="Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)")
 ):
     setup_logging(log_level)
@@ -73,11 +73,9 @@ def generate_archived_repos_json(
     # Determine the base URL and token based on provider
     is_ghe = provider.lower() == "ghe"
     if is_ghe:
-        if not github_base_url:
-            logging.error("--github-base-url is required when using 'ghe' provider")
-            raise typer.BadParameter("--github-base-url is required when using 'ghe' provider")
-        base_url = github_base_url
+        base_url = github_base_url if github_base_url else "https://ghe.iparadigms.com/api/v3"
         github_token = get_ghe_token()
+        logging.info(f"Using GHE with base URL: {base_url}")
     else:
         base_url = "https://api.github.com"
         github_token = get_github_token()
