@@ -3,7 +3,7 @@ import json
 import logging
 import sys
 
-from utils.githubApi import get_archived_repos_urls
+from utils.githubApi import get_archived_repos_urls, get_user_orgs
 from utils.tokenReader import get_github_token, get_ghe_token
 from utils.synkApi import get_snyk_targets, get_snyk_projects_by_target_id, deactivate_project, delete_project
 from utils.fileReader import write_json_to_file
@@ -49,8 +49,9 @@ def get_all_projects(matching_targets, snyk_tenant, snyk_org_id):
 
 @app.command()
 def generate_archived_repos_json(
-    github_org_name: str = typer.Option(..., "--github-org-name", "-g", help="The name of the GitHub organization to search for archived repos"),
     snyk_org_id: str = typer.Option(..., "--snyk-org-id", "-s", help="The ID of the Snyk organization to search for targets"),
+    github_org_name: str = typer.Option(None, "--github-org-name", "-g", help="The name of a specific GitHub organization to search for archived repos"),
+    all_orgs: bool = typer.Option(False, "--all-orgs", "-a", help="Scan all GitHub organizations accessible by the token"),
     output_file: str = typer.Option("archived-projects.json", "--output-file", "-o", help="The file path to write the JSON data"),
     snyk_tenant: str = typer.Option("api.snyk.io", "--snyk-tenant", "-st", help="The tenant of the Snyk organization"),
     provider: str = typer.Option("github", "--provider", "-p", help="The Git provider (github or ghe)"),
@@ -59,6 +60,15 @@ def generate_archived_repos_json(
 ):
     setup_logging(log_level)
     logging.info("Starting to generate archived repos JSON")
+
+    # Validate that either github_org_name or all_orgs is specified
+    if not github_org_name and not all_orgs:
+        logging.error("Either --github-org-name or --all-orgs must be specified")
+        raise typer.BadParameter("Either --github-org-name or --all-orgs must be specified")
+
+    if github_org_name and all_orgs:
+        logging.error("Cannot specify both --github-org-name and --all-orgs")
+        raise typer.BadParameter("Cannot specify both --github-org-name and --all-orgs")
 
     # Determine the base URL and token based on provider
     is_ghe = provider.lower() == "ghe"
@@ -73,8 +83,27 @@ def generate_archived_repos_json(
         github_token = get_github_token()
 
     logging.info(f"Using GitHub API base URL: {base_url}")
-    archived_repo_urls = get_archived_repos_urls(github_org_name, github_token, base_url, is_ghe)
-    logging.info(f"Found {len(archived_repo_urls)} archived repos")
+
+    # Determine which orgs to scan
+    if all_orgs:
+        logging.info("Fetching all accessible GitHub organizations...")
+        org_names = get_user_orgs(github_token, base_url, is_ghe)
+        if not org_names:
+            logging.error("No organizations found")
+            return
+        logging.info(f"Will scan {len(org_names)} organizations: {', '.join(org_names)}")
+    else:
+        org_names = [github_org_name]
+        logging.info(f"Scanning single organization: {github_org_name}")
+
+    # Collect archived repos from all specified orgs
+    archived_repo_urls = []
+    for org in org_names:
+        logging.info(f"Fetching archived repos from organization: {org}")
+        org_archived_repos = get_archived_repos_urls(org, github_token, base_url, is_ghe)
+        archived_repo_urls.extend(org_archived_repos)
+
+    logging.info(f"Found {len(archived_repo_urls)} total archived repos across all organizations")
 
     snyk_targets = get_snyk_targets(snyk_tenant, snyk_org_id)
     all_projects = []
